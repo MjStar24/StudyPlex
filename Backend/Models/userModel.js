@@ -10,9 +10,11 @@ const userSchema=new Schema({
         enum:['JEE','NEET'],
         requied:false,
     },
-    class:{type:Number,required:false},
+    Class:{type:Number,required:false},
     city:{type:String,required:false},
     state:{type:String,requied:false},
+    board:{type:String,requied:false},
+    isActivated:{type:Boolean,required:false},
     courses:[{type:String}]
 })
 

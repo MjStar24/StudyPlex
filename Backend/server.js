@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import DbConnect from "./Services/dbConnection.js";
 
 import authRoutes from "./Routes/authRoutes.js"
+import activeRoutes from "./Routes/activateRoutes.js"
 
 DbConnect();
 
@@ -19,6 +20,7 @@ app.use(cors());
 app.get("/",(req,res)=> res.json({"message":"Hello from StudyPlex"}));
 
 app.use("/auth",authRoutes);
+app.use("/activate",activeRoutes);
 
 
 const PORT=process.env.PORT || 5000;

@@ -1,4 +1,4 @@
-import User from "../models/userModel.js";
+import User from "../Models/userModel.js";
 import hashService from "../Services/hashService.js";
 import otpService from "../Services/otpService.js";
 import tokenService from "../Services/tokenService.js";

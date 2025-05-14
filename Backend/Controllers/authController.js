@@ -1,7 +1,7 @@
-import User from "../Models/userModel";
-import hashService from "../Services/hashService";
-import otpService from "../Services/otpService";
-import tokenService from "../Services/tokenService";
+import User from "../models/userModel.js";
+import hashService from "../Services/hashService.js";
+import otpService from "../Services/otpService.js";
+import tokenService from "../Services/tokenService.js";
 
 class AuthController{
     async sendOtp(req,res){
@@ -19,7 +19,7 @@ class AuthController{
             
             // await otpService.sendBySms(phone,otp);
 
-            return res.status(200).json({hash:`${hash}.${expires}`,phone});
+            return res.status(200).json({hash:`${hash}.${expires}`,phone,otp});
 
         }catch(e){
             console.log(e);
@@ -54,17 +54,19 @@ class AuthController{
             activated:false,
         });
 
+        tokenService.storeRefreshToken(refreshToken,user._id);
+
         return res.status(200).json({accessToken,refreshToken});
     }
 
     async refresh(req,res){
         try{
             const {refreshTokenFromClient}=req.body;
-
+  
             let userData;
             userData=await tokenService.verifyRefreshToken(refreshTokenFromClient);
 
-            if(!userData) return res.status(401).json({message:'Invalid Token'});
+            // if(!userData) return res.status(401).json({message:'Invalid Token'});
 
             const token=await tokenService.findRefreshToken(userData._id,refreshTokenFromClient);
 

@@ -1,5 +1,6 @@
-import hashService from "./hashService";
+import hashService from "./hashService.js";
 import twilio from "twilio";
+import crypto from 'crypto';
 
 const smsSid=process.env.SMS_SID;
 const smsAuthToken=process.env.SMS_AUTH_TOKEN;
@@ -24,7 +25,7 @@ class OtpService{
 
     async verifyOtp(hashedOtp,data){
         let computedHash= hashService.hashOtp(data);
-        return computedHash=hashedOtp;
+        return computedHash===hashedOtp;
     }
 
 }

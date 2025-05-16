@@ -66,7 +66,7 @@ class AuthController{
             let userData;
             userData=await tokenService.verifyRefreshToken(refreshTokenFromClient);
 
-            // if(!userData) return res.status(401).json({message:'Invalid Token'});
+            if(!userData) return res.status(401).json({message:'Invalid Token'});
 
             const token=await tokenService.findRefreshToken(userData._id,refreshTokenFromClient);
 

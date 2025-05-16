@@ -1,4 +1,4 @@
-import User from "../Models/userModel";
+import User from "../Models/userModel.js";
 
 class ActivateContoller{
     async activate(req,res){

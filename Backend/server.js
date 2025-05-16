@@ -9,6 +9,8 @@ import DbConnect from "./Services/dbConnection.js";
 import authRoutes from "./Routes/authRoutes.js"
 import activeRoutes from "./Routes/activateRoutes.js"
 
+import bookRoutes from "./Routes/bookRoutes.js"
+import centerRoutes from "./Routes/centerRoute.js"
 DbConnect();
 
 const app=express();
@@ -20,6 +22,8 @@ app.use(cors());
 app.get("/",(req,res)=> res.json({"message":"Hello from StudyPlex"}));
 
 app.use("/auth",authRoutes);
+app.use("/book",bookRoutes);
+app.use("/center",centerRoutes);
 app.use("/activate",activeRoutes);
 
 

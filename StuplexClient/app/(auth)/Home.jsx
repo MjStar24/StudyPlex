@@ -4,11 +4,11 @@ import React from 'react'
 const Home = () => {
   return (
     <View>
-      <Text>Hello From StudyPlex</Text>
+      <Text>Welcome to StudyPlex</Text>
     </View>
   )
 }
 
-export default Home;
+export default Home
 
 const styles = StyleSheet.create({})

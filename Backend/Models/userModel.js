@@ -10,12 +10,17 @@ const userSchema=new Schema({
         enum:['JEE','NEET'],
         requied:false,
     },
+    role:{type:String,enum:['student','educator'],requied:false},
+    teacherDetails:{
+        qualification:{type:String},
+        experience:{type:String},
+    },
     Class:{type:Number,required:false},
     city:{type:String,required:false},
     state:{type:String,requied:false},
     board:{type:String,requied:false},
     isActivated:{type:Boolean,required:false},
-    courses:[{type:String}]
+    courses:[{type:Schema.Types.ObjectId,ref:'Course'}]
 })
 
 const User=mongoose.model("User",userSchema);

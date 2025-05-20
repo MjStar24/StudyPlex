@@ -8,6 +8,7 @@ import DbConnect from "./Services/dbConnection.js";
 
 import authRoutes from "./Routes/authRoutes.js"
 import activeRoutes from "./Routes/activateRoutes.js"
+import streamRoutes from "./Routes/streamRoutes.js"
 
 import bookRoutes from "./Routes/bookRoutes.js"
 import centerRoutes from "./Routes/centerRoute.js"
@@ -25,6 +26,7 @@ app.use("/auth",authRoutes);
 app.use("/book",bookRoutes);
 app.use("/center",centerRoutes);
 app.use("/activate",activeRoutes);
+app.use("/stream",streamRoutes);
 
 
 const PORT=process.env.PORT || 5000;

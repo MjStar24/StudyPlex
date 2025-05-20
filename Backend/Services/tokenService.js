@@ -5,9 +5,10 @@ const refreshTokenSecret=process.env.JWT_REFRESH_TOKEN_SECRET;
 import mongoose from "mongoose";
 
 class tokenService{
+
     generateToken(payload){
         const accessToken=jwt.sign(payload,accessTokenSecret,{
-            expiresIn:'1m',
+            expiresIn:'1d',
         });
 
         const refreshToken=jwt.sign(payload,refreshTokenSecret,{

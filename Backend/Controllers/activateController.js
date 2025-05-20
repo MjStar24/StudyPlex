@@ -15,6 +15,7 @@ class ActivateContoller{
                 city,
                 board,
                 isActivated:true,
+                role:'student',
             });
             if(user.matchedCount===0) return res.status(404).json({message:'User not found!'});
 

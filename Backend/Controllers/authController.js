@@ -56,7 +56,7 @@ class AuthController{
 
         tokenService.storeRefreshToken(refreshToken,user._id);
 
-        return res.status(200).json({accessToken,refreshToken});
+        return res.status(200).json({accessToken,refreshToken,user});
     }
 
     async refresh(req,res){

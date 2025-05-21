@@ -16,14 +16,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/color';
 import ThemedView from '../../components/ThemeView';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext.js';
+import {SERVER_URL} from '@env'
+
+import { useDispatch, useSelector } from 'react-redux';
+import { setAuth } from '../../store/authSlice';
 
 const OTPVerificationScreen = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] || Colors.dark;
-  const { phone } = useLocalSearchParams(); // comes from login page
+  const { phone, hash } = useLocalSearchParams(); 
   const router = useRouter();
-  const { updateUser } = useAuth();
+
+  const dispatch = useDispatch();
+  
+  const user = useSelector((state) => state.auth.user);
 
   const [otp, setOtp] = useState(['', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
@@ -33,6 +39,7 @@ const OTPVerificationScreen = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [serverHash, setServerHash] = useState(hash || '');
 
   const inputs = useRef([]);
 
@@ -42,6 +49,11 @@ const OTPVerificationScreen = () => {
       return () => clearTimeout(timer);
     }
   }, [resendTimer]);
+
+  useEffect(() => {
+  if (hash) setServerHash(hash);
+}, [hash]);
+
 
   const handleChange = (text, index) => {
     const val = text.replace(/[^0-9]/g, '');
@@ -73,6 +85,8 @@ const OTPVerificationScreen = () => {
     }
   };
 
+
+
   // 1. OTP Verify Logic
   const handleVerify = async () => {
     if (otp.join('').length < 4) {
@@ -82,16 +96,21 @@ const OTPVerificationScreen = () => {
     }
     setLoading(true);
     try {
-      const res = await axios.post('http://<YOUR_BACKEND_URL>/api/verify-otp', {
+      const res = await axios.post(`${SERVER_URL}/auth/api/verify-otp`, {
         phone,
         otp: otp.join(''),
+        hash: serverHash,
       });
-      // Update context with user info
-      updateUser({
-        phone,
-        otpVerified: true,
-        ...res.data.user, // name, goal, etc.
-      });
+     
+      dispatch(
+        setAuth({
+          user: {
+            phone,
+            otpVerified: true,
+            ...res.data.user, // name, goal, etc.
+          },
+        })
+      );
       // Success modal dikhao
       setSuccessMsg('OTP verified successfully!');
       setShowSuccess(true);
@@ -121,7 +140,8 @@ const OTPVerificationScreen = () => {
     setResendTimer(30);
     setResendLoading(true);
     try {
-      await axios.post('http://<YOUR_BACKEND_URL>/api/send-otp', { phone });
+      await axios.post(`${SERVER_URL}/auth/api/send-otp`, { phone });
+      setServerHash(res.data.hash);
       setSuccessMsg('OTP sent successfully!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1200);
@@ -162,8 +182,12 @@ const OTPVerificationScreen = () => {
               keyboardType="number-pad"
               maxLength={1}
               value={otp[index]}
-              onChangeText={text => handleChange(text, index)}
-              onKeyPress={e => handleKeyPress(e, index)}
+              onChangeText={(text) => {
+                return handleChange(text, index);
+              }}
+              onKeyPress={(e) => {
+                return handleKeyPress(e, index);
+              }}
               autoFocus={index === 0}
               selectionColor={theme.button}
             />
@@ -183,7 +207,9 @@ const OTPVerificationScreen = () => {
           {loading ? (
             <ActivityIndicator color={theme.buttonText} />
           ) : (
-            <Text style={[styles.verifyText, { color: theme.buttonText }]}>Verify OTP</Text>
+            <Text style={[styles.verifyText, { color: theme.buttonText }]}>
+              Verify OTP
+            </Text>
           )}
         </Pressable>
 
@@ -219,7 +245,9 @@ const OTPVerificationScreen = () => {
                 onPress={() => setShowError(false)}
                 style={[styles.alertButton, { backgroundColor: theme.button }]}
               >
-                <Text style={{ color: theme.buttonText, fontWeight: '600' }}>OK</Text>
+                <Text style={{ color: theme.buttonText, fontWeight: '600' }}>
+                  OK
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -234,7 +262,9 @@ const OTPVerificationScreen = () => {
         >
           <View style={styles.modalOverlay}>
             <View style={[styles.alertBox, { backgroundColor: theme.card }]}>
-              <Text style={[styles.alertText, { color: theme.text, fontWeight: '700' }]}>
+              <Text
+                style={[styles.alertText, { color: theme.text, fontWeight: '700' }]}
+              >
                 {successMsg}
               </Text>
             </View>

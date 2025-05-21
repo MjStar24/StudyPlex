@@ -11,7 +11,8 @@ const tw=twilio(smsSid,smsAuthToken,{
 
 class OtpService{
     async generateOtp(){
-        const otp=crypto.randomInt(1000,9999);
+        const otp=crypto.randomInt(1000,9999).toString();
+        console.log(otp);
         return otp;
     }
 
@@ -24,7 +25,9 @@ class OtpService{
     }
 
     async verifyOtp(hashedOtp,data){
-        let computedHash= hashService.hashOtp(data);
+        let computedHash= await hashService.hashOtp(data);
+        console.log(computedHash);
+        console.log(hashedOtp);
         return computedHash===hashedOtp;
     }
 

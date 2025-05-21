@@ -17,6 +17,7 @@ import { Colors } from '../../constants/color';
 import { Ionicons } from '@expo/vector-icons';
 import ThemedView from '../../components/ThemeView';
 import axios from 'axios';
+import {SERVER_URL} from '@env'
 
 const PhoneLoginScreen = () => {
   const colorScheme = useColorScheme();
@@ -32,13 +33,18 @@ const PhoneLoginScreen = () => {
     if (phoneNumber.length === 10) {
       setLoading(true);
       try {
-        const formattedPhone = '+91' + phoneNumber;
-       // await axios.post('https://<YOUR_BACKEND_URL>/api/send-otp', { phone: formattedPhone });
+      const formattedPhone = '+91' + phoneNumber;
+      const response = await axios.post(`${SERVER_URL}/auth/api/send-otp`, { phone: formattedPhone });
+      console.log('API Response:', response.data); // ✅ DEBUG LOG
+
+     const { hash } = response.data;
         router.push({
           pathname: '/verify',
-          params: { phone: formattedPhone },
+          params: { phone: formattedPhone, hash },
+         
         });
       } catch (err) {
+        console.log(' Error in OTP request:', err);
         setOtpErrorMsg(
           err.response?.data?.message ||
           'OTP bhejne me kuch problem aayi. Kripya thodi der baad try karein.'

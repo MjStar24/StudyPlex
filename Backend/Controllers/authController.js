@@ -36,7 +36,7 @@ class AuthController{
         if(Date.now()>+expires) return res.status(400).json({message:'OTP expired!'});
 
         const data=`${phone}.${otp}.${expires}`;
-        const isValid=otpService.verifyOtp(hashedOtp,data);
+        const isValid= await otpService.verifyOtp(hashedOtp,data);
 
         if(!isValid) return res.status(400).json({message:'Invalid OTP'});
 

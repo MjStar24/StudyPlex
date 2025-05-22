@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 const Schema=mongoose.Schema;
 
 const userSchema=new Schema({
-    phone:{type:String,requied:true},
-    name:{type:String,required:false},
-    email:{type:String,requied:false},
+    phone:{type:String,requied:true,trim:true},
+    name:{type:String,required:false,trim:true},
+    email:{type:String,requied:false,trim:true},
     exam:{
         type:String,
         enum:['JEE','NEET'],

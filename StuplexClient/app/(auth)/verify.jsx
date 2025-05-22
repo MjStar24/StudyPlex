@@ -11,7 +11,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/color';
 import ThemedView from '../../components/ThemeView';
@@ -19,132 +19,122 @@ import axios from 'axios';
 import {SERVER_URL} from '@env'
 
 import { useDispatch, useSelector } from 'react-redux';
-import { setAuth } from '../../store/authSlice';
+import { setAuth, setOtp } from '../../store/authSlice';
 
 const OTPVerificationScreen = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] || Colors.dark;
-  const { phone, hash } = useLocalSearchParams(); 
   const router = useRouter();
 
   const dispatch = useDispatch();
-  
-  const user = useSelector((state) => state.auth.user);
 
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const phone = useSelector((state) => state.auth.otp.phone);
+  const serverHash = useSelector((state) => state.auth.otp.hash);
+
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [resendLoading, setResendLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const [serverHash, setServerHash] = useState(hash || '');
 
   const inputs = useRef([]);
 
   useEffect(() => {
     if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      const timer = setTimeout(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [resendTimer]);
 
   useEffect(() => {
-  if (hash) setServerHash(hash);
-}, [hash]);
-
-
-  const handleChange = (text, index) => {
-    const val = text.replace(/[^0-9]/g, '');
-    const newOtp = [...otp];
-
-    if (val) {
-      newOtp[index] = val[0];
-      setOtp(newOtp);
-      if (index < 3) {
-        inputs.current[index + 1]?.focus();
-      }
-    } else {
-      newOtp[index] = '';
-      setOtp(newOtp);
-    }
-  };
-
-  const handleKeyPress = ({ nativeEvent }, index) => {
-    if (nativeEvent.key === 'Backspace') {
-      if (otp[index] === '') {
-        if (index > 0) {
-          inputs.current[index - 1]?.focus();
-        }
-      } else {
-        const newOtp = [...otp];
-        newOtp[index] = '';
-        setOtp(newOtp);
-      }
-    }
-  };
-
-
-
-  // 1. OTP Verify Logic
-  const handleVerify = async () => {
-    if (otp.join('').length < 4) {
-      setErrorMsg('Please enter the 4-digit OTP.');
-      setShowError(true);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await axios.post(`${SERVER_URL}/auth/api/verify-otp`, {
-        phone,
-        otp: otp.join(''),
-        hash: serverHash,
-      });
-     
-      dispatch(
-        setAuth({
-          user: {
-            phone,
-            otpVerified: true,
-            ...res.data.user, // name, goal, etc.
-          },
-        })
-      );
-      // Success modal dikhao
-      setSuccessMsg('OTP verified successfully!');
-      setShowSuccess(true);
-
-      // 1.5 sec baad redirect karo (UX smoothness ke liye)
-      setTimeout(() => {
+    let timer;
+    if (showSuccess) {
+      timer = setTimeout(() => {
         setShowSuccess(false);
-        if (res.data.user?.name && res.data.user?.goal) {
+        if (userHasDetails) {
           router.replace('/home');
         } else {
           router.replace('/userdetails');
         }
       }, 1500);
+    }
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
+
+
+  const [userHasDetails, setUserHasDetails] = useState(false);
+  const handleChange = (text, index) => {
+    const val = text.replace(/[^0-9]/g, '').slice(0, 1);
+    const newOtp = [...otpDigits];
+    newOtp[index] = val;
+    setOtpDigits(newOtp);
+    if (val && index < 3) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyPress = ({ nativeEvent }, index) => {
+    if (nativeEvent.key === 'Backspace') {
+      if (otpDigits[index] === '') {
+        if (index > 0) {
+          inputs.current[index - 1]?.focus();
+        }
+      } else {
+        const newOtp = [...otpDigits];
+        newOtp[index] = '';
+        setOtpDigits(newOtp);
+      }
+    }
+  };
+  // 1. OTP Verify Logic
+  const handleVerify = async () => {
+    if (otpDigits.join('').length < 4) {
+      setErrorMsg('Please enter the 4-digit OTP.');
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post(`${SERVER_URL}/auth/api/verify-otp`, {
+        phone,
+        otp: otpDigits.join(''),
+        hash: serverHash,
+      });
+
+    const { user, accessToken } = res.data;   
+    dispatch(setAuth({ user, token: accessToken }));
+   // Success modal dikhao
+     setUserHasDetails(Boolean(user.name && user.email && user.city));
+      setSuccessMsg('OTP verified successfully!');
+      setShowSuccess(true);
     } catch (err) {
-      setErrorMsg(
-        err.response?.data?.message || 'Invalid OTP. Please try again.'
-      );
+      const message =
+        err.response?.data?.message || err.message || 'Invalid OTP. Please try again.';
+      setErrorMsg(message);
       setShowError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Resend OTP Logic
   const handleResend = async () => {
-    setOtp(['', '', '', '']);
+    setOtpDigits(['', '', '', '']);
     setResendTimer(30);
     setResendLoading(true);
     try {
-      await axios.post(`${SERVER_URL}/auth/api/send-otp`, { phone });
-      setServerHash(res.data.hash);
+      const res = await axios.post(`${SERVER_URL}/auth/api/send-otp`, { phone });
+      const newHash = res.data.hash;
+
+      dispatch(setOtp({ phone, hash: newHash }));
+
       setSuccessMsg('OTP sent successfully!');
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 1200);
     } catch (err) {
       setErrorMsg('OTP resend failed. Try again later.');
       setShowError(true);
@@ -156,7 +146,12 @@ const OTPVerificationScreen = () => {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <ThemedView style={styles.container}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          accessible={true}
+          accessibilityLabel="Go back"
+        >
           <Ionicons name="chevron-back" size={24} color={theme.text} />
         </Pressable>
 
@@ -167,10 +162,10 @@ const OTPVerificationScreen = () => {
         </Text>
 
         <View style={styles.otpContainer}>
-          {otp.map((digit, index) => (
+          {otpDigits.map((digit, index) => (
             <TextInput
               key={index}
-              ref={ref => (inputs.current[index] = ref)}
+              ref={(ref) => (inputs.current[index] = ref)}
               style={[
                 styles.otpBox,
                 {
@@ -181,15 +176,18 @@ const OTPVerificationScreen = () => {
               ]}
               keyboardType="number-pad"
               maxLength={1}
-              value={otp[index]}
-              onChangeText={(text) => {
-                return handleChange(text, index);
-              }}
-              onKeyPress={(e) => {
-                return handleKeyPress(e, index);
-              }}
+              value={digit}
+              onChangeText={(text) => handleChange(text, index)}
+              onKeyPress={(e) => handleKeyPress(e, index)}
               autoFocus={index === 0}
               selectionColor={theme.button}
+              editable={!loading && !resendLoading}
+              accessible={true}
+              accessibilityLabel={`OTP digit ${index + 1}`}
+              returnKeyType={index === 3 ? 'done' : 'next'}
+              onSubmitEditing={() => {
+                if (index < 3) inputs.current[index + 1]?.focus();
+              }}
             />
           ))}
         </View>
@@ -203,13 +201,13 @@ const OTPVerificationScreen = () => {
             styles.verifyBtn,
           ]}
           disabled={loading}
+          accessible={true}
+          accessibilityLabel="Verify OTP"
         >
           {loading ? (
             <ActivityIndicator color={theme.buttonText} />
           ) : (
-            <Text style={[styles.verifyText, { color: theme.buttonText }]}>
-              Verify OTP
-            </Text>
+            <Text style={[styles.verifyText, { color: theme.buttonText }]}>Verify OTP</Text>
           )}
         </Pressable>
 
@@ -217,8 +215,11 @@ const OTPVerificationScreen = () => {
           Didn’t receive code?{' '}
           {resendTimer === 0 ? (
             <Text
-              onPress={handleResend}
+              onPress={!resendLoading ? handleResend : null}
               style={{ color: theme.button, fontWeight: '600' }}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={resendLoading ? 'Sending OTP' : 'Resend OTP'}
             >
               {resendLoading ? 'Sending...' : 'Resend OTP'}
             </Text>
@@ -235,36 +236,30 @@ const OTPVerificationScreen = () => {
           transparent
           visible={showError}
           onRequestClose={() => setShowError(false)}
+          accessible={true}
+          accessibilityRole="alert"
         >
           <View style={styles.modalOverlay}>
             <View style={[styles.alertBox, { backgroundColor: theme.card }]}>
-              <Text style={[styles.alertText, { color: theme.text }]}>
-                {errorMsg}
-              </Text>
+              <Text style={[styles.alertText, { color: theme.text }]}>{errorMsg}</Text>
               <Pressable
                 onPress={() => setShowError(false)}
                 style={[styles.alertButton, { backgroundColor: theme.button }]}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Close error message"
               >
-                <Text style={{ color: theme.buttonText, fontWeight: '600' }}>
-                  OK
-                </Text>
+                <Text style={{ color: theme.buttonText, fontWeight: '600' }}>OK</Text>
               </Pressable>
             </View>
           </View>
         </Modal>
 
         {/* Success Modal */}
-        <Modal
-          animationType="fade"
-          transparent
-          visible={showSuccess}
-          onRequestClose={() => setShowSuccess(false)}
-        >
+        <Modal animationType="fade" transparent visible={showSuccess} accessible={true}>
           <View style={styles.modalOverlay}>
             <View style={[styles.alertBox, { backgroundColor: theme.card }]}>
-              <Text
-                style={[styles.alertText, { color: theme.text, fontWeight: '700' }]}
-              >
+              <Text style={[styles.alertText, { color: theme.text, fontWeight: '700' }]}>
                 {successMsg}
               </Text>
             </View>

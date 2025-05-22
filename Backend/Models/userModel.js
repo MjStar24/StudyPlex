@@ -15,7 +15,7 @@ const userSchema=new Schema({
         qualification:{type:String},
         experience:{type:String},
     },
-    Class:{type:Number,required:false},
+    Class:{type:String,required:false},
     city:{type:String,required:false},
     state:{type:String,requied:false},
     board:{type:String,requied:false},

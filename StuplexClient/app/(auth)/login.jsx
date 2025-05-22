@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -17,32 +17,39 @@ import { Colors } from '../../constants/color';
 import { Ionicons } from '@expo/vector-icons';
 import ThemedView from '../../components/ThemeView';
 import axios from 'axios';
-import {SERVER_URL} from '@env'
+import { SERVER_URL } from '@env';
+import { useSelector, useDispatch } from 'react-redux';
+import { setOtp } from '../../store/authSlice';
 
 const PhoneLoginScreen = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] || Colors.dark;
   const router = useRouter();
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [showAlert, setShowAlert] = useState(false); // For invalid phone
-  const [showOtpError, setShowOtpError] = useState(false); // For OTP send error
-  const [otpErrorMsg, setOtpErrorMsg] = useState(''); // Custom error message
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+
+
+  const [phoneNumber, setPhoneNumber] = React.useState('');
+  const [showAlert, setShowAlert] = React.useState(false);
+  const [showOtpError, setShowOtpError] = React.useState(false);
+  const [otpErrorMsg, setOtpErrorMsg] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const handleContinue = async () => {
     if (phoneNumber.length === 10) {
       setLoading(true);
       try {
-      const formattedPhone = '+91' + phoneNumber;
-      const response = await axios.post(`${SERVER_URL}/auth/api/send-otp`, { phone: formattedPhone });
-      console.log('API Response:', response.data); // ✅ DEBUG LOG
-
-     const { hash } = response.data;
-        router.push({
-          pathname: '/verify',
-          params: { phone: formattedPhone, hash },
-         
+        const formattedPhone = '+91' + phoneNumber;
+        const response = await axios.post(`${SERVER_URL}/auth/api/send-otp`, {
+          phone: formattedPhone,
         });
+
+        const { hash } = response.data;
+
+
+        dispatch(setOtp({ phone: formattedPhone, hash }));
+
+
+        router.push('/verify');
       } catch (err) {
         console.log(' Error in OTP request:', err);
         setOtpErrorMsg(
@@ -97,9 +104,7 @@ const PhoneLoginScreen = () => {
               onPress={handleContinue}
               style={({ pressed }) => [
                 {
-                  backgroundColor: pressed
-                    ? theme.primaryPressed
-                    : theme.button,
+                  backgroundColor: pressed ? theme.primaryPressed : theme.button,
                 },
                 styles.continueButton,
               ]}
@@ -116,13 +121,8 @@ const PhoneLoginScreen = () => {
           </View>
         </View>
 
-        {/* 🔔 Modal: Invalid Phone Number */}
-        <Modal
-          animationType="fade"
-          transparent
-          visible={showAlert}
-          onRequestClose={() => setShowAlert(false)}
-        >
+       {/* 🔔 Modal: Invalid Phone Number */}
+        <Modal animationType="fade" transparent visible={showAlert} onRequestClose={() => setShowAlert(false)}>
           <View style={styles.modalOverlay}>
             <View style={[styles.alertBox, { backgroundColor: theme.card }]}>
               <Text style={[styles.alertText, { color: theme.text }]}>
@@ -139,17 +139,10 @@ const PhoneLoginScreen = () => {
         </Modal>
 
         {/* 🔔 Modal: OTP Send Error */}
-        <Modal
-          animationType="fade"
-          transparent
-          visible={showOtpError}
-          onRequestClose={() => setShowOtpError(false)}
-        >
+        <Modal animationType="fade" transparent visible={showOtpError} onRequestClose={() => setShowOtpError(false)}>
           <View style={styles.modalOverlay}>
             <View style={[styles.alertBox, { backgroundColor: theme.card }]}>
-              <Text style={[styles.alertText, { color: theme.text }]}>
-                {otpErrorMsg}
-              </Text>
+              <Text style={[styles.alertText, { color: theme.text }]}>{otpErrorMsg}</Text>
               <Pressable
                 onPress={() => setShowOtpError(false)}
                 style={[styles.alertButton, { backgroundColor: theme.button }]}

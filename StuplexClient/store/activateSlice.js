@@ -1,24 +1,44 @@
-import { createSlice } from "@reduxjs/toolkit";
-const initialState={
-    name:'',
-    role:''
-}
+import { createSlice } from '@reduxjs/toolkit';
 
-export const activateSlice = createSlice({
-    name: 'activate',
-    initialState,
-    reducers: {
-        setName: (state, action) => {
-            const {name,role}=action.payload;
-            state.name = name;
-            state.role= role;
-        },
-        // setAvatar: (state, action) => {
-        //     state.avatar = action.payload;
-        // },
+const initialState = {
+  name:'',
+  email: '',
+  city: '',
+  state: '',
+  board: '',
+  exam: '',
+  class: '',
+  role: '',
+};
+
+const activateSlice = createSlice({
+  name: 'activate',
+  initialState,
+  reducers: {
+    setUserDetails: (state, action) => {
+      const {
+        name,
+        email,
+        city,
+        state: userState,
+        board,
+        exam,
+        class: userClass,
+        role,
+      } = action.payload;
+
+      state.name = name;
+      state.email = email ;
+      state.city = city ;
+      state.state = userState ;
+      state.board = board;
+      state.exam = exam;
+      state.class = userClass;
+      state.role= role;
     },
+  },
 });
 
-export const { setName } = activateSlice.actions;
+export const { setUserDetails, } = activateSlice.actions;
 
 export default activateSlice.reducer;

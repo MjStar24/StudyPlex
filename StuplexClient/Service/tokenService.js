@@ -15,5 +15,6 @@ export const getAccessToken=async()=>{
 
 export const getRefreshToken=async()=>{
     const creds=await SecureStore.getItemAsync('refreshToken');
+    console.log('creds',creds);
     return creds;
 }

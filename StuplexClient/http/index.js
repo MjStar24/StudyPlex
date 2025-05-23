@@ -14,13 +14,14 @@ const api=axios.create({
 api.interceptors.request.use(async(config)=>{
     const token=await getAccessToken();
     console.log(token);
-    if(token) config.headers['Authorization']=`Bearer ${token}`;
+    if(token) config.headers['authorization']=`Bearer ${token}`;
     return config
 },(error) => Promise.reject(error)
 )
 
 export const sendOtp=(data)=>api.post('/auth/api/send-otp',data);
-export const verifyOtp = (data) => api.post('auth/api/verify-otp', data);
+export const verifyOtp = (data) => api.post('/auth/api/verify-otp', data);
+export const activateUser=(data)=>api.post('/activate/api/activate-user',data);
 export const zegoToken=(data)=>api.get('/stream/api/token',data);
 
 export default api;

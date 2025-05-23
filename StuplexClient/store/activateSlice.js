@@ -9,6 +9,7 @@ const initialState = {
   exam: '',
   class: '',
   role: '',
+  isActivated:false
 };
 
 const activateSlice = createSlice({
@@ -25,6 +26,7 @@ const activateSlice = createSlice({
         exam,
         class: userClass,
         role,
+        isActivated
       } = action.payload;
 
       state.name = name;
@@ -35,6 +37,7 @@ const activateSlice = createSlice({
       state.exam = exam;
       state.class = userClass;
       state.role= role;
+      state.isActivated=isActivated;
     },
   },
 });

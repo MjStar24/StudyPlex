@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const GuestRoutes = () => {
+const Student = () => {
   return (
     <View>
-      <Text>GuestRoutes</Text>
+      <Text>student</Text>
     </View>
   )
 }
 
-export default GuestRoutes
+export default Student
 
 const styles = StyleSheet.create({})

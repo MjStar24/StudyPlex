@@ -1,16 +1,11 @@
-import { StyleSheet,} from 'react-native'
-import React from 'react'
-import { Stack } from 'expo-router'
+import { Redirect, Stack } from "expo-router";
+import { useSelector } from "react-redux";
 
 const userscreenlayout = () => {
-  return (
-        <Stack screenOptions={{
-           headerShown:false
-        }}/>
-  
-  )
-}
+  const {isAuth,user}=useSelector((state)=>state.auth);
+  if(!isAuth) return <Redirect href='/(auth)'/>;
+  if(isAuth && user?.isActivated) return <Redirect href={`(${user.role})`}/>
+  return <Stack screenOptions={{ headerShown: false }} />;
+};
 
-export default userscreenlayout
-
-const styles = StyleSheet.create({})
+export default userscreenlayout;

@@ -20,6 +20,8 @@ import {SERVER_URL} from '@env'
 
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuth, setOtp } from '../../store/authSlice';
+import { storeAccessToken, storeRefreshToken } from '../../Service/tokenService';
+import { verifyOtp } from '../../http';
 
 const OTPVerificationScreen = () => {
   const colorScheme = useColorScheme();
@@ -101,14 +103,24 @@ const OTPVerificationScreen = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${SERVER_URL}/auth/api/verify-otp`, {
+      // const res = await axios.post(`${SERVER_URL}/auth/api/verify-otp`, {
+      //   phone,
+      //   otp: otpDigits.join(''),
+      //   hash: serverHash,
+      // });
+
+      const res=await verifyOtp({
         phone,
         otp: otpDigits.join(''),
         hash: serverHash,
-      });
+      })
 
-    const { user, accessToken } = res.data;   
+    const { user, accessToken,refreshToken } = res.data;   
+    console.log('hii')
     dispatch(setAuth({ user, token: accessToken }));
+    console.log('hello')
+    storeAccessToken(accessToken);
+    storeRefreshToken(refreshToken);
    // Success modal dikhao
      setUserHasDetails(Boolean(user.name && user.email && user.city));
       setSuccessMsg('OTP verified successfully!');

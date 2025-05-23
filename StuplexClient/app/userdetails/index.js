@@ -17,6 +17,8 @@ import { useDispatch,useSelector } from "react-redux";
 import { setUserDetails } from "../../store/activateSlice";
 import { SERVER_URL } from "@env";
 import axios from "axios";
+import { setAuth } from "../../store/authSlice.js";
+import { activateUser } from "../../http/index.js";
 
 const UserDetailsScreen = () => {
   const [step, setStep] = useState(1);
@@ -78,16 +80,11 @@ const token = useSelector((state) => state.auth.token);
 
       console.log('Sending activation request with token:', token);
 
-      
 
-      axios
-        .post(`${SERVER_URL}/activate/api/activate-user`, userPayload,{
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+      activateUser(userPayload)
         .then((response) => {
           console.log("Activation response:", response.data);
+          dispatch(setAuth(response.data));
           router.replace("/home"); 
         })
         .catch((error) => {

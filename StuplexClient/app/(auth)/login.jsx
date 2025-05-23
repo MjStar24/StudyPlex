@@ -20,6 +20,7 @@ import axios from 'axios';
 import { SERVER_URL } from '@env';
 import { useSelector, useDispatch } from 'react-redux';
 import { setOtp } from '../../store/authSlice';
+import { sendOtp } from '../../http';
 
 const PhoneLoginScreen = () => {
   const colorScheme = useColorScheme();
@@ -39,9 +40,11 @@ const PhoneLoginScreen = () => {
       setLoading(true);
       try {
         const formattedPhone = '+91' + phoneNumber;
-        const response = await axios.post(`${SERVER_URL}/auth/api/send-otp`, {
-          phone: formattedPhone,
-        });
+        console.log('hii');
+        // const response = await axios.post(`${SERVER_URL}/auth/api/send-otp`, {
+        //   phone: formattedPhone,
+        // });
+        const response=await sendOtp({phone:formattedPhone});
 
         const { hash } = response.data;
 
